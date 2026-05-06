@@ -20,19 +20,11 @@ It acts like a mini command palette for your terminal.
 
 Make sure you have:
 
-* `zsh`
 * `python3`
-* `rich` (Python package)
-* `fzf` (for interactive mode)
-
-### Install dependencies
-
-```bash
-sudo apt install zsh fzf
-pip install rich
-```
-
----
+* [`zsh`](https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH)
+* [`rich`](https://github.com/textualize/rich)
+* [`fzf`](https://github.com/junegunn/fzf)
+* [`starship`](https://github.com/starship/starship)
 
 ## 🚀 Installation
 
