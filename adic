@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+from rich.console import Console
+from rich.table import Table
+import os
+
+console = Console()
+
+
+def interactive_mode(aliases):
+    alias_map = dict(aliases)
+
+    fzf_input = "\n".join([f"{name} -> {cmd}" for name, cmd in aliases])
+
+    result = subprocess.run(
+        "fzf --prompt='adic > '",
+        input=fzf_input,
+        text=True,
+        shell=True,
+        capture_output=True,
+    )
+    
+    selected = result.stdout.strip().splitlines()[0]
+
+    if not selected:
+        return
+
+    confirm = input("Run? [y/N]: ").lower()
+    if confirm != "y":
+        return
+
+    name = result.stdout.strip().split(" -> ")[0]
+    cmd = alias_map.get(name)
+
+    if cmd:
+        print(f"Executing: {cmd}")
+        subprocess.run(cmd, shell=True, executable="/bin/zsh")
+
+
+def get_aliases():
+
+    output = subprocess.check_output(["zsh", "-ilc", "alias"], text=True)
+
+    aliases = []
+    for line in output.splitlines():
+        if "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        value = value.strip()
+        
+        if value.startswith("'") and value.endswith("'"):
+            value = value[1:-1]
+            
+        aliases.append((name.strip(), value.strip().strip("'")))
+    return aliases
+
+
+def render(aliases,show_header=True):
+    
+    if show_header:
+        console.print("\n[bold cyan]Zsh Alias Control Panel[/bold cyan]\n")
+        
+    table = Table()
+
+    table.add_column("Alias", style="cyan", no_wrap=True)
+    table.add_column("Command", style="green")
+
+    for name, value in aliases:
+        table.add_row(name, value)
+
+    console.print(table)
+
+
+def main():
+    aliases = get_aliases()
+
+    if len(sys.argv) == 1:
+        render(aliases,show_header=True)
+        return
+    
+    if sys.argv[1] in ("i", "--interactive"):
+        interactive_mode(aliases)
+        return
+
+
+    query = " ".join(sys.argv[1:]).lower()
+
+    filtered = [(n, v) for n, v in aliases if query in n.lower() or query in v.lower()]
+
+    render(filtered,show_header=False)
+
+
+if __name__ == "__main__":
+    main()
